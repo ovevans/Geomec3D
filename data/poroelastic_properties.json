@@ -1,0 +1,222 @@
+{
+	"CorticalBone": {
+		"PorousMedium": "CorticalBone",
+		"Fluid": "BoneFluid",
+		"ShearModulus": 5500000000.0,
+		"BulkModulus": 13900000000.0,
+		"SolidBulkModulus": 15800000000.0,
+		"FluidBulkModulus": 2300000000.0,
+		"Porosity": 0.04,
+		"Permeability": 1.47e-20,
+		"FluidViscosity": 0.001
+	},
+	"Alundum": {
+		"PorousMedium": "Alundum",
+		"Fluid": "Water",
+		"ShearModulus": 25300000000.0,
+		"BulkModulus": 31400000000.0,
+		"SolidBulkModulus": 78900000000.0,
+		"FluidBulkModulus": 2040000000.0,
+		"Porosity": 0.316,
+		"Permeability": 2.71e-12,
+		"FluidViscosity": 0.001
+	},
+	"TennesseeMarble": {
+		"PorousMedium": "TennesseeMarble",
+		"Fluid": "Water",
+		"ShearModulus": 24000000000.0,
+		"BulkModulus": 40000000000.0,
+		"SolidBulkModulus": 50000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.02,
+		"Permeability": 1e-19,
+		"FluidViscosity": 0.001
+	},
+	"RockSalt": {
+		"PorousMedium": "RockSalt",
+		"Fluid": "Water (Unsaturated)",
+		"ShearModulus": 12400000000.0,
+		"BulkModulus": 20700000000.0,
+		"SolidBulkModulus": 23500000000.0,
+		"FluidBulkModulus": 2000000000.0,
+		"Porosity": 0.001,
+		"Permeability": 1e-21,
+		"FluidViscosity": 0.001
+	},
+	"CharcoalGranite": {
+		"PorousMedium": "CharcoalGranite",
+		"Fluid": "Water",
+		"ShearModulus": 18700000000.0,
+		"BulkModulus": 34400000000.0,
+		"SolidBulkModulus": 45400000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.02,
+		"Permeability": 1e-19,
+		"FluidViscosity": 0.001
+	},
+	"OhioSandstone": {
+		"PorousMedium": "OhioSandstone",
+		"Fluid": "Water",
+		"ShearModulus": 6800000000.0,
+		"BulkModulus": 8400000000.0,
+		"SolidBulkModulus": 31000000000.0,
+		"FluidBulkModulus": 2040000000.0,
+		"Porosity": 0.191,
+		"Permeability": 5.6e-15,
+		"FluidViscosity": 0.001
+	},
+	"WeberSandstone": {
+		"PorousMedium": "WeberSandstone",
+		"Fluid": "Water",
+		"ShearModulus": 12200000000.0,
+		"BulkModulus": 13400000000.0,
+		"SolidBulkModulus": 36000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.06,
+		"Permeability": 1e-15,
+		"FluidViscosity": 0.001
+	},
+	"WesterlyGranite": {
+		"PorousMedium": "WesterlyGranite",
+		"Fluid": "Water",
+		"ShearModulus": 15000000000.0,
+		"BulkModulus": 25000000000.0,
+		"SolidBulkModulus": 45400000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.01,
+		"Permeability": 4e-19,
+		"FluidViscosity": 0.001
+	},
+	"BoiseSandstone": {
+		"PorousMedium": "BoiseSandstone",
+		"Fluid": "Kerosene",
+		"ShearModulus": 4200000000.0,
+		"BulkModulus": 4600000000.0,
+		"SolidBulkModulus": 31300000000.0,
+		"FluidBulkModulus": 1380000000.0,
+		"Porosity": 0.26,
+		"Permeability": 8e-13,
+		"FluidViscosity": 0.00163
+	},
+	"BereaSandstone": {
+		"PorousMedium": "BereaSandstone",
+		"Fluid": "Water",
+		"ShearModulus": 6000000000.0,
+		"BulkModulus": 8000000000.0,
+		"SolidBulkModulus": 36000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.19,
+		"Permeability": 1.9e-13,
+		"FluidViscosity": 0.001
+	},
+	"PecosSandstone": {
+		"PorousMedium": "PecosSandstone",
+		"Fluid": "Water",
+		"ShearModulus": 5850000000.0,
+		"BulkModulus": 6640000000.0,
+		"SolidBulkModulus": 39000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.195,
+		"Permeability": 8e-16,
+		"FluidViscosity": 0.001
+	},
+	"RuhrSandstone": {
+		"PorousMedium": "RuhrSandstone",
+		"Fluid": "Water",
+		"ShearModulus": 13300000000.0,
+		"BulkModulus": 13100000000.0,
+		"SolidBulkModulus": 36000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.02,
+		"Permeability": 2e-16,
+		"FluidViscosity": 0.001
+	},
+	"DanianChalk": {
+		"PorousMedium": "DanianChalk",
+		"Fluid": "Water",
+		"ShearModulus": 2200000000.0,
+		"BulkModulus": 3300000000.0,
+		"SolidBulkModulus": 12000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.23,
+		"Permeability": 1e-17,
+		"FluidViscosity": 0.001
+	},
+	"GulfMexicoShale": {
+		"PorousMedium": "GulfMexicoShale",
+		"Fluid": "Water",
+		"ShearModulus": 760000000.0,
+		"BulkModulus": 1100000000.0,
+		"SolidBulkModulus": 34000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.3,
+		"Permeability": 1e-19,
+		"FluidViscosity": 0.001
+	},
+	"CoarseSand": {
+		"PorousMedium": "CoarseSand",
+		"Fluid": "Water",
+		"ShearModulus": 97900000.0,
+		"BulkModulus": 194000000.0,
+		"SolidBulkModulus": 4860000000.0,
+		"FluidBulkModulus": 647000000.0,
+		"Porosity": 0.48,
+		"Permeability": 3.62e-12,
+		"FluidViscosity": 0.00894
+	},
+	"WoolFelt": {
+		"PorousMedium": "WoolFelt",
+		"Fluid": "SiliconFluid",
+		"ShearModulus": 531000.0,
+		"BulkModulus": 1150000.0,
+		"SolidBulkModulus": 12700000.0,
+		"FluidBulkModulus": 99300000.0,
+		"Porosity": 0.7,
+		"Permeability": 3.72e-13,
+		"FluidViscosity": 0.0487
+	},
+	"SoftSediment": {
+		"PorousMedium": "SoftSediment",
+		"Fluid": "Water",
+		"ShearModulus": 22100000.0,
+		"BulkModulus": 36900000.0,
+		"SolidBulkModulus": 36000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.76,
+		"Permeability": 1e-11,
+		"FluidViscosity": 0.001
+	},
+	"HardSediment": {
+		"PorousMedium": "HardSediment",
+		"Fluid": "Water",
+		"ShearModulus": 26100000.0,
+		"BulkModulus": 43600000.0,
+		"SolidBulkModulus": 36000000000.0,
+		"FluidBulkModulus": 2250000000.0,
+		"Porosity": 0.47,
+		"Permeability": 1e-10,
+		"FluidViscosity": 0.001
+	},
+	"AbyssalRedClay": {
+		"PorousMedium": "AbyssalRedClay",
+		"Fluid": "SaltWater",
+		"ShearModulus": 72000.0,
+		"BulkModulus": 20000000.0,
+		"SolidBulkModulus": 50000000000.0,
+		"FluidBulkModulus": 2000000000.0,
+		"Porosity": 0.71,
+		"Permeability": 3e-16,
+		"FluidViscosity": 0.0015
+	},
+	"PolyurethaneFoam": {
+		"PorousMedium": "PolyurethaneFoam",
+		"Fluid": "SiliconFluid",
+		"ShearModulus": 3100.0,
+		"BulkModulus": 8140.0,
+		"SolidBulkModulus": 136000.0,
+		"FluidBulkModulus": 36800000.0,
+		"Porosity": 0.93,
+		"Permeability": 9.68e-10,
+		"FluidViscosity": 0.0487
+	}
+}
