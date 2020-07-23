@@ -37,7 +37,7 @@ medium = "GulfMexicoShale"
 """ START """
 
 # Generate grid
-grid = SphereGrid(x0, y0, z0, R, N)
+grid = QuarterSphereGrid(x0, y0, z0, R, N)
 # Generate mixed spaces and trial and test functions
 space = DisplacementPressureSpace(grid, pu, pp)
 (u, p) = space.trialFunction()
