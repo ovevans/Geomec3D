@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, '../')
 
-from dolfin import split, plot, interpolate, Constant, assign
+from dolfin import split, plot, interpolate, Expression, Constant, assign
 import matplotlib.pyplot as plt
 
 from libs.grids import *
@@ -18,15 +18,11 @@ from libs.solvers import *
 
 # Dimensions
 x0 = 0.0
-x1 = 1.0
 y0 = 0.0
-y1 = 1.0
 z0 = 0.0
-z1 = 6.0
+R = 1.0
 # Refinement
-Nx = 2
-Ny = 2
-Nz = 12
+N = 10
 # Elements degree
 pu = 1
 pp = 1
@@ -34,14 +30,14 @@ pp = 1
 dt = 1e5
 T = 2.5e7
 # Load
-load = Constant((0.0, 0.0, -10.0e3))
+load = Expression(("load*x[0]/r", "load*x[1]/r", "load*x[2]/r"), r=R, load=-10.0e3, degree=pu)
 # Porous medium
 medium = "GulfMexicoShale"
 
 """ START """
 
 # Generate grid
-grid = BoxGrid(x0, x1, y0, y1, z0, z1, Nx, Ny, Nz)
+grid = SphereGrid(x0, y0, z0, R, N)
 # Generate mixed spaces and trial and test functions
 space = DisplacementPressureSpace(grid, pu, pp)
 (u, p) = space.trialFunction()
@@ -55,19 +51,17 @@ solution_u[0] = u0
 solution_p[0] = p0
 u0.rename("u", "u")
 p0.rename("p", "p")
-XDMFWriter("results", "terzaghi3D", [u0, p0])
+XDMFWriter("results", "cryer3D", [u0, p0])
 # Import porous medium data
 properties = getJsonData("../data/poroelastic_properties.json")
 properties = PoroelasticProperties(properties[medium])
 # Assign BC
 bcs = []
 bcs = BoundaryConditions(grid, space)
-bcs.addPressureHomogeneousBC(6)
-bcs.addDisplacementHomogeneousBC(1, 0)
+bcs.addPressureHomogeneousBC(1)
 bcs.addDisplacementHomogeneousBC(2, 0)
 bcs.addDisplacementHomogeneousBC(3, 1)
-bcs.addDisplacementHomogeneousBC(4, 1)
-bcs.addDisplacementHomogeneousBC(5, 2)
+bcs.addDisplacementHomogeneousBC(4, 2)
 bcs.blockInitialize()
 # Generate linear system and coefficients matrix
 ls = LinearSystem(grid)
@@ -84,7 +78,7 @@ t = dt
 while t <= T:
 	print("Time = {:.3E}".format(t), end="\r")
 	# Generate independent terms vector
-	forceVector = ls.forceVector(load, w, 6)
+	forceVector = ls.forceVector(load, w, 1)
 	f = [forceVector,
 	 	 0]
 	f = ls.assembly(f)
@@ -103,7 +97,7 @@ while t <= T:
 	solution_p[t] = p_h
 	u_h.rename("u", "u")
 	p_h.rename("p", "p")
-	XDMFWriter("results", "terzaghi3D", [u_h, p_h], time=t)
+	XDMFWriter("results", "cryer3D", [u_h, p_h], time=t)
 	# Next time-step
 	t += dt
 	u0.assign(u_h)
