@@ -6,6 +6,7 @@ class LinearSystem(object):
 	def __init__(self, grid):
 		self.dx = grid.dx
 		self.ds = grid.ds
+		self.dS = grid.dS
 	def stiffnessBlock(self, properties, u, w):
 		return 2*properties.G*inner(sym(grad(u)), grad(w))*self.dx + properties.lamda*div(u)*div(w)*self.dx
 
@@ -24,12 +25,12 @@ class LinearSystem(object):
 	def forceVector(self, load, w, mark):
 		return inner(load, w)*self.ds(mark)
 
-	def accumulationVector(self, properties, dt, p0, u0, q):
-		# return (properties.alpha/dt)*div(u0)*q*self.dx + (1./(properties.Q*dt))*p0*self.dx
-		return 0
+	def apply(self, entity, bcs):
+		bcs.apply(entity)
+		return entity
 
-	def assembly(self, entity, bcs):
+	def assembly(self, entity, bcs = []):
 		entity = block_assemble(entity)
 		if bcs:
-			bcs.apply(entity)
+			self.apply(entity, bcs)
 		return entity

@@ -15,7 +15,7 @@ class RectangleGrid(object):
 		class Top(SubDomain):
 			def inside(self, x, on_boundary):
 				return near(x[1], y1)
-		self.mesh = RectangleMesh(Point(x0, y0), Point(x1, y1), nx, ny)
+		self.mesh = RectangleMesh(Point(x0, y0), Point(x1, y1), nx, ny, diagonal="crossed")
 		self.domains = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
 		self.domains.set_all(0)
 		self.dx = Measure('dx', domain=self.mesh, subdomain_data=self.domains)
@@ -30,6 +30,7 @@ class RectangleGrid(object):
 		self.top = Top()
 		self.top.mark(self.boundaries, 4)
 		self.ds = Measure('ds', domain=self.mesh, subdomain_data=self.boundaries)
+		self.dS = Measure('dS', domain=self.mesh, subdomain_data=self.boundaries)
 
 
 class BoxGrid(object):
@@ -71,3 +72,4 @@ class BoxGrid(object):
 		self.top = Top()
 		self.top.mark(self.boundaries, 6)
 		self.ds = Measure('ds', domain=self.mesh, subdomain_data=self.boundaries)
+		self.dS = Measure('dS', domain=self.mesh, subdomain_data=self.boundaries)
