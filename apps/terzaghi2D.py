@@ -1,7 +1,7 @@
 import sys
 sys.path.insert(0, '../')
 
-from dolfin import split, plot, Constant
+from dolfin import split, plot, interpolate, Constant
 import matplotlib.pyplot as plt
 
 from libs.grids import *
@@ -11,45 +11,66 @@ from libs.properties import *
 from libs.bcs import *
 from libs.linearsystem import *
 from libs.solvers import *
+from libs.xdmf2dolfin import *
 
 
-grid = RectangleGrid(0., 1., 0., 1., 1, 1) # x0, x1, y0, y1, z0, z1, nx, ny, nz
+grid = RectangleGrid(0., 1., 0., 6., 2, 12)
+dt = 1e5
+T = 1e8
 
-space = DisplacementPressureSpace(grid, 1, 1) # u_degree, p_degree
-(u, p) = space.TrialFunction()
-(w, q) = space.TestFunction()
+space = DisplacementPressureSpace(grid, 1, 1)
+(u, p) = space.trialFunction()
+(w, q) = space.testFunction()
+
+u0 = interpolate(Constant((0.0, 0.0)), space.V)
+p0 = interpolate(Constant(0.0), space.Q)
 
 properties = getJsonData("../data/poroelastic_properties.json")
-properties = PoroelasticProperties(properties["HardSediment"]) # Porous medium name
+properties = PoroelasticProperties(properties["GulfMexicoShale"])
 
 bcs = []
 bcs = BoundaryConditions(grid, space)
-bcs.addPressureHomogeneousBC(4)
+# bcs.addPressureHomogeneousBC(4)
 bcs.addDisplacementHomogeneousBC(1, 0)
 bcs.addDisplacementHomogeneousBC(2, 0)
 bcs.addDisplacementHomogeneousBC(3, 1)
 bcs.blockInitialize()
 
-ls = LinearSystem()
+ls = LinearSystem(grid)
 stiffnessBlock = ls.stiffnessBlock(properties, u, w)
 porePressureBlock = ls.porePressureBlock(properties, p, w)
-solidVelocityBlock = ls.solidVelocityBlock(properties, u, q)
-storageBlock = ls.storageBlock(properties, p, q)
+solidVelocityBlock = ls.solidVelocityBlock(properties, dt, u, q)
+storageBlock = ls.storageBlock(properties, dt, p, q)
 fluidFlowBlock = ls.fluidFlowBlock(properties, p, q)
 A = [[stiffnessBlock, 		porePressureBlock],
 	 [solidVelocityBlock,	storageBlock + fluidFlowBlock]]
-# A = ls.assembly(A, bcs.dirichlet)
+A = ls.assembly(A, bcs.dirichlet)
 
-forceVector = ls.forceVector(Constant((0., -10.e3)), w, 4)
-b = [forceVector,
-	 0]
-# b = ls.assembly(b, bcs.dirichlet)
+# for i,row in enumerate(A.array()):
+# 	print("Row {}: ".format(i + 1), end="")
+# 	for j,elem in enumerate(row):
+# 		print("({}, {:.2E}) ".format(j, elem), end="")
+# 	print("\n")
 
-# X = space.Function()
-# solver = Mumps(A, X, b)
-# (u_h, p_h) = solver.solution.block_split()
+X = space.function()
+t = dt
+while t <= T:
+	print("Time = {:.3E}".format(t), end="\r")
+	forceVector = ls.forceVector(Constant((0., -10.e3)), w, 4)
+	accumulationVector = ls.accumulationVector(properties, dt, p0, u0, q)
+	b = [forceVector,
+	 	 accumulationVector]
+	b = ls.assembly(b, bcs.dirichlet)
+	solver = Mumps(A, X, b)
+	(u_h, p_h) = solver.solution.block_split()
+	t += dt
+	u0.assign(u_h)
+	p0.assign(p_h)
+	
+u_h.rename("u", "u")
+p_h.rename("p", "p")
 # plt.figure(1)
-# plot(u_h, title="Displacement")
-# plt.figure(2)
-# plot(p_h, title="Pressure")
+# c = plot(p_h, title="Pressure")
+# # plt.colorbar(c)
 # plt.show()
+XDMFFieldWriter("results", "terzaghi2D", [u_h, p_h])

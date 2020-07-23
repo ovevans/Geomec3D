@@ -1,5 +1,5 @@
 from dolfin import VectorElement, FiniteElement, FunctionSpace
-from multiphenics import BlockFunctionSpace, block_split, BlockTrialFunction, BlockTestFunction, BlockFunction
+from multiphenics import BlockFunctionSpace, BlockTrialFunction, BlockTestFunction, BlockFunction, block_split
 
 
 class DisplacementPressureSpace(object):
@@ -10,11 +10,11 @@ class DisplacementPressureSpace(object):
 		self.Q = FunctionSpace(grid.mesh, q_elem)
 		self.mixedSpace = BlockFunctionSpace([self.V, self.Q])
 
-	def TrialFunction(self):
+	def trialFunction(self):
 		return block_split(BlockTrialFunction(self.mixedSpace))
 
-	def TestFunction(self):
+	def testFunction(self):
 		return block_split(BlockTestFunction(self.mixedSpace))
 
-	def Function(self):
+	def function(self):
 		return BlockFunction(self.mixedSpace)

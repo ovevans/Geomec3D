@@ -1,4 +1,4 @@
-from dolfin import near, Point, SubDomain, Mesh, MeshFunction, RectangleMesh, BoxMesh
+from dolfin import near, Point, SubDomain, Mesh, MeshFunction, Measure, RectangleMesh, BoxMesh
 
 
 class RectangleGrid(object):
@@ -16,6 +16,9 @@ class RectangleGrid(object):
 			def inside(self, x, on_boundary):
 				return near(x[1], y1)
 		self.mesh = RectangleMesh(Point(x0, y0), Point(x1, y1), nx, ny)
+		self.domains = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
+		self.domains.set_all(0)
+		self.dx = Measure('dx', domain=self.mesh, subdomain_data=self.domains)
 		self.boundaries = MeshFunction("size_t", self.mesh, self.mesh.topology().dim()-1)
 		self.boundaries.set_all(0)
 		self.left = Left()
@@ -26,6 +29,7 @@ class RectangleGrid(object):
 		self.bottom.mark(self.boundaries, 3)
 		self.top = Top()
 		self.top.mark(self.boundaries, 4)
+		self.ds = Measure('ds', domain=self.mesh, subdomain_data=self.boundaries)
 
 
 class BoxGrid(object):
@@ -49,17 +53,21 @@ class BoxGrid(object):
 			def inside(self, x, on_boundary):
 				return near(x[2], z1)
 		self.mesh = BoxMesh(Point(x0, y0, z0), Point(x1, y1, z1), nx, ny, nz)
+		self.domains = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
+		self.domains.set_all(0)
+		self.dx = Measure('dx', domain=self.mesh, subdomain_data=self.domains)
 		self.boundaries = MeshFunction("size_t", self.mesh, self.mesh.topology().dim()-1)
 		self.boundaries.set_all(0)
 		self.left = Left()
 		self.left.mark(self.boundaries, 1)
 		self.right = Right()
 		self.right.mark(self.boundaries, 2)
-		self.bottom = Bottom()
-		self.bottom.mark(self.boundaries, 3)
-		self.top = Top()
-		self.top.mark(self.boundaries, 4)
 		self.front = Front()
-		self.front.mark(self.boundaries, 5)
+		self.front.mark(self.boundaries, 3)
 		self.back = Back()
-		self.back.mark(self.boundaries, 6)
+		self.back.mark(self.boundaries, 4)
+		self.bottom = Bottom()
+		self.bottom.mark(self.boundaries, 5)
+		self.top = Top()
+		self.top.mark(self.boundaries, 6)
+		self.ds = Measure('ds', domain=self.mesh, subdomain_data=self.boundaries)

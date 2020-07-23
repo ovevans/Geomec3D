@@ -9,5 +9,5 @@ class PoroelasticProperties(object):
 		self.mu = properties["FluidViscosity"]
 		self.lamda = self.K - 2.*self.G/3.
 		self.alpha = 1 - self.K/self.Ks
-		self.Q = 1./(self.phi/self.Kf - (self.alpha - self.phi)/self.Ks)
-		self.M = self.K + 4.*self.G/3.
+		self.Q = 1./(self.phi/self.Kf + (self.alpha - self.phi)/self.Ks)
+		self.M = self.lamda + 2*self.G

@@ -1,4 +1,4 @@
-from dolfin import Constant
+from dolfin import Constant, Vector
 from multiphenics import DirichletBC, BlockDirichletBC
 
 
@@ -21,4 +21,5 @@ class BoundaryConditions(object):
 		self.dirichlet.append(DirichletBC(self.space.mixedSpace.sub(0).sub(direction), Constant(0.), self.grid.boundaries, mark))
 
 	def blockInitialize(self):
-		self.dirichlet = BlockDirichletBC([self.dirichlet])
+		if self.dirichlet:
+			self.dirichlet = BlockDirichletBC([self.dirichlet])
