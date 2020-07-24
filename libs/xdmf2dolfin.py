@@ -18,11 +18,18 @@ def DolfinReader(directory, file):
 	return msh, boundaries, subdomains
 
 
-def XDMFWriter(directory, file, solutionList, time=0.0):
-	with XDMFFile("{}/{}.xdmf".format(directory, file)) as infile:
-		infile.parameters["rewrite_function_mesh"] = False
-		infile.parameters["functions_share_mesh"] = True
+class XDMFWriter(object):
+	def __init__(self, directory, file):
+		self.outputFile = XDMFFile("{}/{}.xdmf".format(directory, file))
+		self.outputFile.parameters["rewrite_function_mesh"] = False
+		self.outputFile.parameters["functions_share_mesh"] = True
+
+	def writeSingle(self, solution, time=0.0):
+		self.outputFile.write(solution, time)
+
+	def writeMultiple(self, solutionList, time=0.0):
 		for solution in solutionList:
-			infile.write(solution, time)
-		infile.close()
-	return
+			self.outputFile.write(solution, time)
+
+	def close(self):
+		self.outputFile.close()

@@ -55,7 +55,8 @@ solution_u[0] = u0
 solution_p[0] = p0
 u0.rename("u", "u")
 p0.rename("p", "p")
-XDMFWriter("results", "terzaghi3D", [u0, p0])
+writer = XDMFWriter("results", "terzaghi3D")
+writer.writeMultiple([u0, p0])
 # Import porous medium data
 properties = getJsonData("../data/poroelastic_properties.json")
 properties = PoroelasticProperties(properties[medium])
@@ -103,8 +104,9 @@ while t <= T:
 	solution_p[t] = p_h
 	u_h.rename("u", "u")
 	p_h.rename("p", "p")
-	XDMFWriter("results", "terzaghi3D", [u_h, p_h], time=t)
+	writer.writeMultiple([u_h, p_h], time=t)
 	# Next time-step
 	t += dt
 	u0.assign(u_h)
 	p0.assign(p_h)
+writer.close()
