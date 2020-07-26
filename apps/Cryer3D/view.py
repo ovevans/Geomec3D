@@ -17,7 +17,6 @@ label1 = "P1P1"
 label2 = "P2P1"
 mark1 = "o"
 mark2 = "x"
-mark3 = "s"
 propertiesFile = "poroelastic_properties.json"
 resultsFile = "results"
 settingsFile = "settings.json"
@@ -29,7 +28,7 @@ properties = getJsonData("{}/{}".format(directory1, propertiesFile))
 settings = getJsonData("{}/{}".format(directory1, settingsFile))
 for key in properties:
 	medium = key
-properties = properties[key]
+properties = properties[medium]
 reader1 = HDF5Reader(directory1, resultsFile)
 reader2 = HDF5Reader(directory2, resultsFile)
 # Exact solution
@@ -37,10 +36,8 @@ cryer = Cryer(properties, settings, numOfRoots=100)
 # Arrange data
 t1 = []
 t2 = []
-t3 = []
 p1 = []
 p2 = []
-p3 = []
 step = 0
 numOfSteps = reader1.getNumOfSteps()
 while step < numOfSteps:

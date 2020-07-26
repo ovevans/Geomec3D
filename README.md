@@ -1,6 +1,6 @@
-# Mixed3D
+# Geomec3D
 
-Solution of 3D fluid flow problems in deformable porous media using a Mixed Finite Element approach.
+Solution of 3D fluid flow problems in deformable porous media using a Finite Element approach.
 
 ## Dependencies
 
