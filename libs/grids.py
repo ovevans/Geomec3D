@@ -43,6 +43,15 @@ class BoxGrid(object):
 		self.ds = Measure('ds', domain=self.mesh, subdomain_data=self.boundaries)
 		self.dS = Measure('dS', domain=self.mesh, subdomain_data=self.boundaries)
 
+	def addStripfootBoundary(self, z1, stripSize):
+		class Strip(SubDomain):
+			def inside(self, x, on_boundary):
+				return near(x[2], z1) and x[0] < stripSize + 1e-12 and x[1] < stripSize + 1e-12
+		self.strip = Strip()
+		self.strip.mark(self.boundaries, 7)
+		self.dx = Measure('dx', domain=self.mesh, subdomain_data=self.domains)
+		self.ds = Measure('ds', domain=self.mesh, subdomain_data=self.boundaries)
+		self.dS = Measure('dS', domain=self.mesh, subdomain_data=self.boundaries)
 
 class QuarterSphereGrid(object):
 	def __init__(self, x0, y0, z0, R, n):
