@@ -1,5 +1,5 @@
 from dolfin import inner, grad, sym, div
-from multiphenics import block_assemble
+from multiphenics import block_assemble, block_solve
 
 
 class LinearSystem(object):
@@ -30,8 +30,42 @@ class LinearSystem(object):
 		bcs.apply(entity)
 		return entity
 
-	def assembly(self, entity, bcs = []):
+	def assembly(self, entity, bcs=[]):
 		entity = block_assemble(entity)
 		if bcs:
 			self.apply(entity, bcs)
 		return entity
+
+	def assemblyFullyImplicitMatrix(self, properties, dt, u, w, p, q, bcs=[]):
+		stiffnessBlock = self.stiffnessBlock(properties, u, w)
+		porePressureBlock = self.porePressureBlock(properties, p, w)
+		solidVelocityBlock = self.solidVelocityBlock(properties, dt, u, q)
+		storageBlock = self.storageBlock(properties, dt, p, q)
+		fluidFlowBlock = self.fluidFlowBlock(properties, p, q)
+		A = [[stiffnessBlock, 		porePressureBlock],
+			 [solidVelocityBlock,	storageBlock + fluidFlowBlock]]
+		if bcs:
+			self.fullyImplicitMatrix = self.assembly(A, bcs)
+		else:
+			self.fullyImplicitMatrix = self.assembly(A)
+
+	def assemblyFullyImplicitVector(self, forceVector):
+		f = [forceVector,
+		 	 0]
+		self.fixedFullyImplicitVector = self.assembly(f)
+
+	def updateFullyImplicitVector(self, properties, dt, u, w, p, q, u0, p0, bcs):
+		solidVelocityBlock = self.solidVelocityBlock(properties, dt, u, q)
+		storageBlock = self.storageBlock(properties, dt, p, q)
+		m = [0,
+			 storageBlock*p0]
+		m = self.assembly(m)
+		s = [0,
+			 solidVelocityBlock*u0]
+		s = self.assembly(s)
+		self.fullyImplicitVector = self.fixedFullyImplicitVector + m + s
+		self.fullyImplicitVector = self.apply(self.fullyImplicitVector, bcs)
+
+	def solveFullyImplicitProblem(self, X):
+		block_solve(self.fullyImplicitMatrix, X.block_vector(), self.fullyImplicitVector, "mumps")
+		self.solution = X

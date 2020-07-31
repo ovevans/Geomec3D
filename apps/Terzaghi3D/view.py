@@ -1,7 +1,6 @@
 import sys
 sys.path.insert(0, '../..')
 
-from dolfin import Point
 import matplotlib.pyplot as plt
 import numpy as np
 
