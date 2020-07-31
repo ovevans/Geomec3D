@@ -1,4 +1,4 @@
-from dolfin import Constant, Vector
+from dolfin import Constant
 from multiphenics import DirichletBC, BlockDirichletBC
 
 

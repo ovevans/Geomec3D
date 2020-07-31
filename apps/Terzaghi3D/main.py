@@ -1,8 +1,7 @@
 import sys
 sys.path.insert(0, '../..')
 
-from dolfin import split, plot, interpolate, Constant, assign
-import matplotlib.pyplot as plt
+from dolfin import interpolate, Expression, Constant, assign
 
 from libs.grids import *
 from libs.spaces import *
@@ -23,9 +22,7 @@ y1 = 0.5
 z0 = 0.0
 z1 = 6.0
 # Refinement
-Nx = 4
-Ny = 4
-Nz = 24
+N = 20
 # Elements degree
 pu = 1
 pp = 1
@@ -34,7 +31,7 @@ dt = 1e5
 T = 5e7
 # Load
 loadMagnitude = -10.0e3 # in Pa
-load = Constant((0.0, 0.0, loadMagnitude))
+load = Expression(("0.0", "0.0", "load"), load=loadMagnitude, degree=pu)
 # Porous medium
 medium = "GulfMexicoShale"
 # Input origin
@@ -48,9 +45,9 @@ settingsFile = "settings"
 """ START """
 
 # Generate grid
-grid = BoxGrid(x0, x1, y0, y1, z0, z1, Nx, Ny, Nz)
+grid = BoxGrid(x0, x1, y0, y1, z0, z1, N)
 # Generate mixed spaces and trial and test functions
-space = DisplacementPressureSpace(grid, pu, pp)
+space = CGvCGqSpace(grid, pu, pp)
 (u, p) = space.trialFunction()
 (w, q) = space.testFunction()
 # Assign IC
@@ -158,6 +155,6 @@ while t <= T:
 	p0.assign(p_h)
 writer.close()
 # Save simulation data
-data = {"Parameters": {"Load": {"Value": loadMagnitude, "Unit": "Pa"}, "Dimensions": {"Length": {"Axis": "x", "Value": x1 - x0, "Unit": "m"}, "Width": {"Axis": "y", "Value": y1 - y0, "Unit": "m"}, "Height": {"Axis": "z", "Value": z1 - z0, "Unit": "m"}}}, "Simulation": {"Timestep Size": {"Value": dt, "Unit": "s"}, "Total Simulation Time": {"Value": T, "Unit": "s"}, "Refinement": {"Characteristic Length": {"Value": ((x1 - x0)/Nx*(y1 - y0)/Ny*(z1 - z0)/Nz)**(1/3), "Unit": "m"}, "Displacement Elements Degree": pu, "Pressure Elements Degree": pp}}}
+data = {"Parameters": {"Load": {"Value": loadMagnitude, "Unit": "Pa"}, "Dimensions": {"Length": {"Axis": "x", "Value": x1 - x0, "Unit": "m"}, "Width": {"Axis": "y", "Value": y1 - y0, "Unit": "m"}, "Height": {"Axis": "z", "Value": z1 - z0, "Unit": "m"}}}, "Simulation": {"Timestep Size": {"Value": dt, "Unit": "s"}, "Total Simulation Time": {"Value": T, "Unit": "s"}, "Refinement": {"Resolution": N, "Displacement Elements Degree": pu, "Pressure Elements Degree": pp}}}
 saveJsonData(data, resultsFolder, settingsFile)
 copyProperties(propertiesFolder, propertiesFile, resultsFolder, [medium])

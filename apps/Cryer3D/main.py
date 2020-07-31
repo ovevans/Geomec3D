@@ -1,8 +1,7 @@
 import sys
 sys.path.insert(0, '../..')
 
-from dolfin import split, plot, interpolate, Expression, Constant, assign
-import matplotlib.pyplot as plt
+from dolfin import interpolate, Expression, Constant, assign
 
 from libs.grids import *
 from libs.spaces import *
@@ -46,7 +45,7 @@ settingsFile = "settings"
 # Generate grid
 grid = QuarterSphereGrid(x0, y0, z0, R, N)
 # Generate mixed spaces and trial and test functions
-space = DisplacementPressureSpace(grid, pu, pp)
+space = CGvCGqSpace(grid, pu, pp)
 (u, p) = space.trialFunction()
 (w, q) = space.testFunction()
 # Assign IC
@@ -150,6 +149,6 @@ while t <= T:
 	p0.assign(p_h)
 writer.close()
 # Save simulation data
-data = {"Parameters": {"Load": {"Value": loadMagnitude, "Unit": "Pa"}, "Radius": {"Value": R, "Unit": "m"}}, "Simulation": {"Timestep Size": {"Value": dt, "Unit": "s"}, "Total Simulation Time": {"Value": T, "Unit": "s"}, "Refinement": {"Characteristic Length": {"Value": R/N, "Unit": "m"}, "Displacement Elements Degree": pu, "Pressure Elements Degree": pp}}}
+data = {"Parameters": {"Load": {"Value": loadMagnitude, "Unit": "Pa"}, "Radius": {"Value": R, "Unit": "m"}}, "Simulation": {"Timestep Size": {"Value": dt, "Unit": "s"}, "Total Simulation Time": {"Value": T, "Unit": "s"}, "Refinement": {"Resolution": N, "Displacement Elements Degree": pu, "Pressure Elements Degree": pp}}}
 saveJsonData(data, resultsFolder, settingsFile)
 copyProperties(propertiesFolder, propertiesFile, resultsFolder, [medium])

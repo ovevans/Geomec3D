@@ -35,24 +35,3 @@ class LinearSystem(object):
 		if bcs:
 			self.apply(entity, bcs)
 		return entity
-
-	def shearStressBlock(self, properties, u, w):
-		return 2*properties.G*inner(sym(grad(u)), grad(w))*self.dx
-
-	def solidPressureBlock(self, sig, w):
-		return sig*div(w)*self.dx
-
-	def stressStorageBlock(self, properties, dt, p, q):
-		return (1./(properties.Q*dt) + properties.alpha**2/(properties.lamda*dt))*p*q*self.dx
-
-	def stressVelocityBlock(self, properties, dt, sig, q):
-		return (properties.alpha/(properties.lamda*dt))*sig*q*self.dx
-
-	def volStrainBlock(self, properties, u, tau):
-		return -properties.lamda*div(u)*tau*self.dx
-
-	def volPressureBlock(self, properties, p, tau):
-		return properties.alpha*p*tau*self.dx
-
-	def volStressBlock(self, sig, tau):
-		return sig*tau*self.dx
