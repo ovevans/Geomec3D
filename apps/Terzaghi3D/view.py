@@ -33,7 +33,7 @@ reader2 = HDF5Reader(directory2, resultsFile)
 # Exact solution
 terza = Terzaghi(properties, settings, numOfTerms=100)
 # Arrange data
-nodes = reader1.getNodesAlongAxis(2, axis0=-0.5)
+nodes = reader1.getNodesAlongAxis(2, axis0=0.5)
 numOfSteps = reader1.getNumOfSteps()
 plottedSteps = [0,
 				int(numOfSteps/128),
