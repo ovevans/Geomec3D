@@ -1,4 +1,4 @@
-from dolfin import inner, grad, sym, div, assemble, solve, Constant, errornorm, norm, set_log_level, PETScKrylovSolver
+from dolfin import inner, grad, sym, div, assemble, Constant, errornorm, norm, set_log_level, PETScKrylovSolver
 from multiphenics import block_assemble, block_solve
 
 
@@ -62,7 +62,6 @@ class LinearSystem(object):
 			self.geoSolver.parameters['relative_tolerance'] = self.tol
 			self.flowSolver = PETScKrylovSolver("bicgstab", "sor")
 			self.flowSolver.parameters['relative_tolerance'] = self.tol
-
 		"""
 		Solvers:
 		'bicgstab'	Biconjugate gradient stabilized method
@@ -74,8 +73,7 @@ class LinearSystem(object):
 		'superlu_dist'	Parallel SuperLU
 		'tfqmr'	Transpose-free quasi-minimal residual method
 		'umfpack'	UMFPACK
-
-		PC:
+		Preconditioners:
 		'icc'	Incomplete Cholesky factorization
 		'ilu'	Incomplete LU factorization
 		'petsc_amg'	PETSc algebraic multigrid
@@ -124,7 +122,6 @@ class LinearSystem(object):
 		set_log_level(20)
 		return error
 
-
 	def solveProblem(self, space):
 		X = space.function()
 		if self.split:
@@ -133,9 +130,9 @@ class LinearSystem(object):
 			u_hk.assign(self.u0)
 			p_hk.assign(self.p0)
 			error = 1e34
-			iteration = 1
+			iteration = 0
 			while error > self.tol and iteration < self.maxIteration:
-				print("Iteration = {:4d}".format(iteration), end="\t")
+				print("Iteration = {:4d}".format(iteration + 1), end="\t")
 				self.iterateFlowVector(u_hk, p_hk)
 				self.apply(self.flowVector, self.bcs.pDirichlet)
 				self.flowSolver.solve(self.flowCoefficientsMatrix, p_h.vector(), self.flowVector)
@@ -152,7 +149,7 @@ class LinearSystem(object):
 				p_hk.assign(p_h)
 				iteration += 1
 			print("\033[K", end="\r")
-			print("Iteration = {:4d}".format(iteration), end="\t")
+			print("Iteration = {:4d}".format(iteration + 1), end="\t")
 			print("Error = {:.2E}".format(error), end="\t")
 			self.solution = (u_h, p_h)
 		else:
