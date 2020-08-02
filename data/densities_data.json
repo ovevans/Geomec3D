@@ -1,0 +1,10 @@
+{
+	"GulfMexicoShale": {
+		"FluidDensity": 1000,
+		"SolidDensity": 2500
+	},
+	"AbyssalRedClay": {
+		"FluidDensity": 1000,
+		"SolidDensity": 2500
+	}
+}

@@ -11,3 +11,11 @@ class PoroelasticProperties(object):
 		self.alpha = 1 - self.K/self.Ks
 		self.Q = 1./(self.phi/self.Kf + (self.alpha - self.phi)/self.Ks)
 		self.M = self.lamda + 2*self.G
+		self.rho_f = 0
+		self.rho_s = 0
+		self.rho = 0
+
+	def loadDensityData(self, data):
+		self.rho_f = data["FluidDensity"]
+		self.rho_s = data["SolidDensity"]
+		self.rho = self.phi*self.rho_f + (1 - self.phi)*self.rho_s

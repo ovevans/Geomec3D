@@ -97,3 +97,58 @@ class Terzaghi(object):
 				term3 = math.sin(((2*j - 1)*pi)/(2.*self.height)*position)
 				summation += term1*term2*term3
 			return self.load/(self.M)*position - ((8.*self.alpha**2*self.Q*self.height*self.load)/(pi**2*self.M*self.Mu))*summation
+
+
+class GravityColumn(object):
+	def __init__(self, properties, densities, settings, numOfTerms=100):
+		properties = PoroelasticProperties(properties)
+		self.load = settings["Parameters"]["Load"]["Value"]
+		self.height = settings["Parameters"]["Dimensions"]["Height"]["Value"]
+		self.dt = settings["Simulation"]["Timestep Size"]["Value"]
+		self.g = settings["Parameters"]["Gravity"]["Value"]
+		self.rho_f = densities["FluidDensity"]
+		self.rho_s = densities["SolidDensity"]
+		self.rho = properties.phi*self.rho_f + (1 - properties.phi)*self.rho_s
+		self.c = (properties.k*properties.Q*properties.M)/(properties.mu*(properties.M + properties.alpha**2*properties.Q))
+		self.M = properties.M
+		self.alpha = properties.alpha
+		self.Q = properties.Q
+		self.Mu = properties.M + properties.alpha**2*properties.Q
+		self.numOfTerms = numOfTerms
+
+	def initialPressure(self, position):
+		return self.rho_f*self.g*(position - 0.5*self.height) - (self.alpha*self.Q/self.Mu)*(self.load + 0.5*self.rho*self.g*self.height)
+
+	def initialDisplacement(self, position):
+		return (self.rho - self.alpha*self.rho_f)*(self.g/(2*self.M))*(self.height*position - position**2) + (1./self.Mu)*(self.load + 0.5*self.rho*self.g*self.height)*position
+
+	def getTime(self, step):
+		return step*self.dt
+
+	def exactPressureSolution(self, position, time):
+		if near(time, 0.):
+			return self.initialPressure(position)
+		else:
+			summation = 0
+			pi = math.pi
+			for j in range(1, self.numOfTerms):
+				serial = ((2*j - 1)*pi)/(2.*self.height)
+				term1 = (-1)**(j + 1)/(2*j - 1)
+				term2 = math.exp(-self.c*time*serial**2)
+				term3 = math.cos(((2*j - 1)*pi)/(2.*self.height)*position)
+				summation += term1*term2*term3
+			return summation*(4./pi)*self.initialPressure(self.height) + self.rho_f*self.g*(position - self.height)
+
+	def exactDisplacementSolution(self, position, time):
+		if near(time, 0.):
+			return self.initialDisplacement(position)
+		else:
+			summation = 0
+			pi = math.pi
+			for j in range(1, self.numOfTerms):
+				serial = ((2*j - 1)*pi)/(2.*self.height)
+				term1 = (-1)**(j + 1)/(2*j - 1)**2
+				term2 = math.exp(-self.c*time*serial**2)
+				term3 = math.sin(((2*j - 1)*pi)/(2.*self.height)*position)
+				summation += term1*term2*term3
+			return (8*self.alpha*self.height*self.initialPressure(self.height))/(pi**2*self.M)*summation + (self.g/self.M)*(self.rho - self.alpha*self.rho_f)*(self.height*position - 0.5*position**2) + (self.load/self.M)*position

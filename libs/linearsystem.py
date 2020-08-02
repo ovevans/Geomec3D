@@ -29,8 +29,11 @@ class LinearSystem(object):
 	def fluidFlowBlock(self, properties, p, q):
 		return (properties.k/properties.mu)*inner(grad(p), grad(q))*self.dx
 
-	def forceVector(self, load, w, mark):
-		return inner(load, w)*self.ds(mark)
+	def forceVector(self, properties, load, w, mark, g=Constant((0., 0., 0.))):
+		return inner(load, w)*self.ds(mark) + properties.rho*inner(g, w)*self.dx
+
+	def hydrostatVector(self, properties, g, q):
+		return (properties.k/properties.mu)*properties.rho_f*inner(g, grad(q))*self.dx
 
 	def apply(self, entity, bcs):
 		if self.split:
@@ -92,12 +95,15 @@ class LinearSystem(object):
 				 [self.solidVelocityBlock,	self.storageBlock + self.fluidFlowBlock]]
 			self.coefficientsMatrix = self.assembly(A, self.bcs.dirichlet)
 
-	def assemblyVector(self, forceVector, u0, p0):
+	def assemblyVector(self, forceVector, u0, p0, hydrostatVector=False):
 		if self.split:
 			self.u0 = u0
 			self.p0 = p0
 			self.fixedGeoVector = self.assembly(forceVector)
-			self.fixedflowVector = self.assembly(self.storageBlock*p0) + self.assembly(self.solidVelocityBlock*u0)
+			if hydrostatVector:
+				self.fixedflowVector = self.assembly(self.storageBlock*p0) + self.assembly(self.solidVelocityBlock*u0) + self.assembly(hydrostatVector)
+			else:
+				self.fixedflowVector = self.assembly(self.storageBlock*p0) + self.assembly(self.solidVelocityBlock*u0)
 		else:
 			f = [forceVector,
 			 	 0]
@@ -108,7 +114,13 @@ class LinearSystem(object):
 			s = [0,
 				 self.solidVelocityBlock*u0]
 			s = self.assembly(s)
-			self.vector = self.apply(f + m + s, self.bcs.dirichlet)
+			if hydrostatVector:
+				g = [0,
+					 hydrostatVector]
+				g = self.assembly(g)
+				self.vector = self.apply(f + m + s + g, self.bcs.dirichlet)
+			else:
+				self.vector = self.apply(f + m + s, self.bcs.dirichlet)
 
 	def iterateGeoVector(self, p_hk):
 		self.geoVector = self.fixedGeoVector + self.assembly(-self.porePressureBlock*p_hk)

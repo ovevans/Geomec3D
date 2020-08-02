@@ -40,7 +40,7 @@ resultsFolder = "results/P1P1"
 resultsFile = "results"
 settingsFile = "settings"
 # Fixed Stress Splitting Scheme
-split = True
+split = False
 
 """ START """
 begin = datetime.now()
@@ -71,7 +71,7 @@ ls.initializeLinearSystem(properties, dt, u, w, p, q, bcs)
 ls.assemblyCoefficientsMatrix()
 writer = XDMFWriter(resultsFolder, resultsFile)
 # Generate independent terms vector
-forceVector = ls.forceVector(load, w, 1)
+forceVector = ls.forceVector(properties, load, w, 1)
 ls.assemblyVector(forceVector, u0, p0)
 # Solve linear system
 ls.solveProblem(space)
@@ -100,7 +100,7 @@ ls = LinearSystem(grid, split=split)
 ls.initializeLinearSystem(properties, dt, u, w, p, q, bcs)
 ls.assemblyCoefficientsMatrix()
 # Calculate force vector
-forceVector = ls.forceVector(load, w, 1)
+forceVector = ls.forceVector(properties, load, w, 1)
 # Loop for transient solution
 while t <= T:
 	ls.assemblyVector(forceVector, u0, p0)

@@ -27,22 +27,25 @@ N = 20
 pu = 1
 pp = 1
 # Simulation time
-dt = 1e5
-T = 5e7
+dt = 5e4
+T = 2.5e6
 # Load
 loadMagnitude = -10.0e3 # in Pa
 load = Expression(("0.0", "0.0", "load"), load=loadMagnitude, degree=pu)
+gravityMagnitude = -9.8
+gravity = Expression(("0.0", "0.0", "gravity"), gravity=gravityMagnitude, degree=pu)
 # Porous medium
-medium = "GulfMexicoShale"
+medium = "AbyssalRedClay"
 # Input origin
 propertiesFolder = "../../data"
 propertiesFile = "poroelastic_properties.json"
+densitiesFile = "densities_data.json"
 # Output destination
 resultsFolder = "results/P1P1"
 resultsFile = "results"
 settingsFile = "settings"
 # Fixed Stress Splitting Scheme
-split = True
+split = False
 
 """ START """
 begin = datetime.now()
@@ -58,8 +61,10 @@ space = CGvCGqSpace(grid, pu, pp, split=split)
 # Import porous medium data
 properties = getJsonData("{}/{}".format(propertiesFolder, propertiesFile))
 properties = PoroelasticProperties(properties[medium])
+densitiesData = getJsonData("{}/{}".format(propertiesFolder, densitiesFile))
+properties.loadDensityData(densitiesData[medium])
 
-""" UNDRAINED STEADY-STATE SOLUTION """
+""" UNDRAINED TRANSIENT SOLUTION """
 
 # Assign BC
 bcs = BoundaryConditions(grid, space, split=split)
@@ -75,15 +80,24 @@ ls.initializeLinearSystem(properties, dt, u, w, p, q, bcs)
 ls.assemblyCoefficientsMatrix()
 writer = XDMFWriter(resultsFolder, resultsFile)
 # Generate independent terms vector
-forceVector = ls.forceVector(properties, load, w, 6)
-ls.assemblyVector(forceVector, u0, p0)
-# Solve linear system
-ls.solveProblem(space)
+forceVector = ls.forceVector(properties, load, w, 6, g=gravity)
+hydrostatVector = ls.hydrostatVector(properties, gravity, q)
+# Loop for transient solution
 t = 0
-print("Time = {:.3E}".format(t), end="\r")
-(u_h, p_h) = ls.solution
+while t <= 2*T:
+	ls.assemblyVector(forceVector, u0, p0, hydrostatVector)
+	# Solve linear system
+	ls.solveProblem(space)
+	print("Time (Undrained Step) = {:.3E}".format(t), end="\r")
+	(u_h, p_h) = ls.solution
+	# Next time-step
+	t += dt
+	u0.assign(u_h)
+	p0.assign(p_h)
+t = 0
 u_h.rename("u", "u")
 p_h.rename("p", "p")
+print("Time (Drained Step) = {:.3E}\033[K".format(t), end="\r")
 writer.writeMultiple([u_h, p_h], time=t)
 # Next time-step
 t += dt
@@ -106,13 +120,14 @@ ls = LinearSystem(grid, split=split)
 ls.initializeLinearSystem(properties, dt, u, w, p, q, bcs)
 ls.assemblyCoefficientsMatrix()
 # Calculate force vector
-forceVector = ls.forceVector(properties, load, w, 6)
+forceVector = ls.forceVector(properties, load, w, 6, g=gravity)
+hydrostatVector = ls.hydrostatVector(properties, gravity, q)
 # Loop for transient solution
 while t <= T:
-	ls.assemblyVector(forceVector, u0, p0)
+	ls.assemblyVector(forceVector, u0, p0, hydrostatVector)
 	# Solve linear system
 	ls.solveProblem(space)
-	print("Time = {:.3E}".format(t), end="\r")
+	print("Time (Drained Step) = {:.3E}".format(t), end="\r")
 	(u_h, p_h) = ls.solution
 	u_h.rename("u", "u")
 	p_h.rename("p", "p")
@@ -123,9 +138,10 @@ while t <= T:
 	p0.assign(p_h)
 writer.close()
 # Save simulation data
-data = {"Parameters": {"Load": {"Value": loadMagnitude, "Unit": "Pa"}, "Dimensions": {"Length": {"Axis": "x", "Value": x1 - x0, "Unit": "m"}, "Width": {"Axis": "y", "Value": y1 - y0, "Unit": "m"}, "Height": {"Axis": "z", "Value": z1 - z0, "Unit": "m"}}}, "Simulation": {"Timestep Size": {"Value": dt, "Unit": "s"}, "Total Simulation Time": {"Value": T, "Unit": "s"}, "Refinement": {"Resolution": N, "Displacement Elements Degree": pu, "Pressure Elements Degree": pp}}}
+data = {"Parameters": {"Load": {"Value": loadMagnitude, "Unit": "Pa"}, "Gravity": {"Value": gravityMagnitude, "Unit": "m/s"}, "Dimensions": {"Length": {"Axis": "x", "Value": x1 - x0, "Unit": "m"}, "Width": {"Axis": "y", "Value": y1 - y0, "Unit": "m"}, "Height": {"Axis": "z", "Value": z1 - z0, "Unit": "m"}}}, "Simulation": {"Timestep Size": {"Value": dt, "Unit": "s"}, "Total Simulation Time": {"Value": T, "Unit": "s"}, "Refinement": {"Resolution": N, "Displacement Elements Degree": pu, "Pressure Elements Degree": pp}}}
 saveJsonData(data, resultsFolder, settingsFile)
 copyProperties(propertiesFolder, propertiesFile, resultsFolder, [medium])
+copyProperties(propertiesFolder, densitiesFile, resultsFolder, [medium])
 
 """ END """
 end = datetime.now()
