@@ -1,13 +1,14 @@
-from dolfin import inner, grad, sym, div, DOLFIN_EPS, assemble, solve, sqrt
+from dolfin import inner, grad, sym, div, assemble, solve, Constant, errornorm, norm, set_log_level, PETScKrylovSolver
 from multiphenics import block_assemble, block_solve
 
 
 class LinearSystem(object):
-	def __init__(self, grid, tol=DOLFIN_EPS, split=False):
+	def __init__(self, grid, split=False, tol=1.e-6, maxIteration=100):
 		self.dx = grid.dx
 		self.ds = grid.ds
 		self.dS = grid.dS
 		self.tol = tol
+		self.maxIteration = maxIteration
 		self.split = split
 	
 	def stiffnessBlock(self, properties, u, w):
@@ -56,6 +57,31 @@ class LinearSystem(object):
 		self.solidPressureBlock = self.solidPressureBlock(properties, dt, p, q)
 		self.fluidFlowBlock = self.fluidFlowBlock(properties, p, q)
 		self.bcs = bcs
+		if self.split:
+			self.geoSolver = PETScKrylovSolver("gmres", "hypre_amg")
+			self.geoSolver.parameters['relative_tolerance'] = self.tol
+			self.flowSolver = PETScKrylovSolver("bicgstab", "sor")
+			self.flowSolver.parameters['relative_tolerance'] = self.tol
+
+		"""
+		Solvers:
+		'bicgstab'	Biconjugate gradient stabilized method
+		'cg'	Conjugate gradient method
+		'gmres'	Generalized minimal residual method
+		'minres'	Minimal residual method
+		'petsc'	PETSc built in LU solver
+		'richardson'	Richardson method
+		'superlu_dist'	Parallel SuperLU
+		'tfqmr'	Transpose-free quasi-minimal residual method
+		'umfpack'	UMFPACK
+
+		PC:
+		'icc'	Incomplete Cholesky factorization
+		'ilu'	Incomplete LU factorization
+		'petsc_amg'	PETSc algebraic multigrid
+		'hypre_amg'	HYPRE algebraic multigrid
+		'sor'	Successive over-relaxation
+		"""
 
 	def assemblyCoefficientsMatrix(self):
 		if self.split:
@@ -86,29 +112,49 @@ class LinearSystem(object):
 			s = self.assembly(s)
 			self.vector = self.apply(f + m + s, self.bcs.dirichlet)
 
-	def iterateGeoVector(self, pk):
-		self.geoVector = self.fixedGeoVector + self.assembly(-self.porePressureBlock*pk)
+	def iterateGeoVector(self, p_hk):
+		self.geoVector = self.fixedGeoVector + self.assembly(-self.porePressureBlock*p_hk)
 
-	def iterateFlowVector(self, uk, pk):
-		self.flowVector = self.fixedflowVector + self.assembly(-self.solidVelocityBlock*uk) + self.assembly(self.solidPressureBlock*pk)
+	def iterateFlowVector(self, u_hk, p_hk):
+		self.flowVector = self.fixedflowVector + self.assembly(-self.solidVelocityBlock*u_hk) + self.assembly(self.solidPressureBlock*p_hk)
 
-	def solveProblem(self, X):
+	def getRelativeErrorNorm(self, p_h, p_hk):
+		set_log_level(40)
+		error = errornorm(p_h, p_hk)/norm(p_h)
+		set_log_level(20)
+		return error
+
+
+	def solveProblem(self, space):
+		X = space.function()
 		if self.split:
-			(u, p) = X
-			(uk, pk) = X
-			p.assign(self.p0)
-			error =1e34
-			while error > self.tol:
-				pk.assign(p)
-				self.iterateGeoVector(pk)
-				self.apply(self.geoVector, self.bcs.uDirichlet)
-				solve(self.geoCoefficientsMatrix, u.vector(), self.geoVector, "mumps")
-				uk.assign(u)
-				self.iterateFlowVector(uk, pk)
+			(u_h, p_h) = X
+			(u_hk, p_hk) = space.assignInitialCondition(Constant((0.0, 0.0, 0.0)), Constant(0.0))
+			u_hk.assign(self.u0)
+			p_hk.assign(self.p0)
+			error = 1e34
+			iteration = 1
+			while error > self.tol and iteration < self.maxIteration:
+				print("Iteration = {:4d}".format(iteration), end="\t")
+				self.iterateFlowVector(u_hk, p_hk)
 				self.apply(self.flowVector, self.bcs.pDirichlet)
-				solve(self.flowCoefficientsMatrix, p.vector(), self.flowVector, "mumps")
-				error = sqrt(assemble(inner(grad(pk - p), grad(pk -p))*self.dx))
-			self.solution = (u, p)
+				self.flowSolver.solve(self.flowCoefficientsMatrix, p_h.vector(), self.flowVector)
+				p_hk.assign(p_h)
+				self.iterateGeoVector(p_hk)
+				self.apply(self.geoVector, self.bcs.uDirichlet)
+				self.geoSolver.solve(self.geoCoefficientsMatrix, u_h.vector(), self.geoVector)
+				u_hk.assign(u_h)
+				self.iterateFlowVector(u_hk, p_hk)
+				self.apply(self.flowVector, self.bcs.pDirichlet)
+				self.flowSolver.solve(self.flowCoefficientsMatrix, p_h.vector(), self.flowVector)
+				error = self.getRelativeErrorNorm(p_h, p_hk)
+				print("Error = {:.2E}".format(error), end="\r")
+				p_hk.assign(p_h)
+				iteration += 1
+			print("\033[K", end="\r")
+			print("Iteration = {:4d}".format(iteration), end="\t")
+			print("Error = {:.2E}".format(error), end="\t")
+			self.solution = (u_h, p_h)
 		else:
 			block_solve(self.coefficientsMatrix, X.block_vector(), self.vector, "mumps")
 			self.solution = X.block_split()

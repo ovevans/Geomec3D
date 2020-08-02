@@ -1,9 +1,9 @@
-from dolfin import SubDomain, near, Point, MeshFunction, Measure
+from dolfin import SubDomain, near, Point, MeshFunction, Measure, BoxMesh
 from mshr import generate_mesh, Box, Sphere
 
 
 class BoxGrid(object):
-	def __init__(self, x0, x1, y0, y1, z0, z1, n):
+	def __init__(self, x0, x1, y0, y1, z0, z1, n, unstructured=False):
 		class Left(SubDomain):
 			def inside(self, x, on_boundary):
 				return near(x[0], x0)
@@ -22,8 +22,14 @@ class BoxGrid(object):
 		class Top(SubDomain):
 			def inside(self, x, on_boundary):
 				return near(x[2], z1)
-		self.geometry = Box(Point(x0, y0, z0), Point(x1, y1, z1))
-		self.mesh = generate_mesh(self.geometry, n)
+		if unstructured:
+			self.geometry = Box(Point(x0, y0, z0), Point(x1, y1, z1))
+			self.mesh = generate_mesh(self.geometry, n)
+		else:
+			nx = int(round(n**(1./3.)*(x1 - x0)))
+			ny = int(round(n**(1./3.)*(y1 - y0)))
+			nz = int(round(n**(1./3.)*(z1 - z0)))
+			self.mesh = BoxMesh(Point(x0, y0, z0), Point(x1, y1, z1), nx, ny, nz)
 		self.domains = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
 		self.domains.set_all(0)
 		self.dx = Measure('dx', domain=self.mesh, subdomain_data=self.domains)
@@ -58,7 +64,7 @@ class QuarterSphereGrid(object):
 		class Z_Symmetric(SubDomain):
 			def inside(self, x, on_boundary):
 				return near(x[2], z0)
-		self.geometry = Sphere(Point(x0, y0, z0), R) - Box(Point(x0 + R, y0, z0 - R), Point(x0 - R, y0 - R, z0 + R)) - Box(Point(x0 - R, y0 + R, z0), Point(x0 + R, y0, z0 - R)) - Box(Point(x0, y0, z0), Point(x0 - R, y0 + R, z0 + R))
+		self.geometry = Sphere(Point(x0, y0, z0), R, segments=n) - Box(Point(x0 + R, y0, z0 - R), Point(x0 - R, y0 - R, z0 + R)) - Box(Point(x0 - R, y0 + R, z0), Point(x0 + R, y0, z0 - R)) - Box(Point(x0, y0, z0), Point(x0 - R, y0 + R, z0 + R))
 		self.mesh = generate_mesh(self.geometry, n)
 		self.domains = MeshFunction("size_t", self.mesh, self.mesh.topology().dim())
 		self.domains.set_all(0)
